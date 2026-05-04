@@ -123,8 +123,12 @@ async def get_task_comment_thread(
     db: AsyncSession = Depends(get_db),
     _: ProjectMember | None = Depends(require_project_role()),
 ):
+    comment = await get_comment_by_id(db, comment_id)
+    if not comment or comment.task_id != task_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Comment not found")
+
     thread = await get_comment_thread(db, comment_id)
-    if not thread or thread.task_id != task_id:
+    if not thread:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Comment not found")
     return thread
 
@@ -220,7 +224,11 @@ async def get_project_comment_thread(
     db: AsyncSession = Depends(get_db),
     _: ProjectMember | None = Depends(require_project_role()),
 ):
+    comment = await get_comment_by_id(db, comment_id)
+    if not comment or comment.project_id != project_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Comment not found")
+
     thread = await get_comment_thread(db, comment_id)
-    if not thread or thread.project_id != project_id:
+    if not thread:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Comment not found")
     return thread
